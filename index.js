@@ -1,20 +1,24 @@
-const koa = require('koa')
 const request = require('request')
+const http = require('http')
+const url = require('url')
 
-const app = new koa()
-
-app.use(async function(ctx)
+http.createServer(function(req, res)
 {
-    const url = ctx.query.url
-    ctx.set('Access-Control-Allow-Origin', '*')
-    if( ! url)
+    const query = url.parse(req.url, true).query
+    console.log(query)
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    if( ! query.url)
     {
-        ctx.body = 'no url'
+        res.writeHead(404, 'Not Found')
+        res.end('<h1>no url</h1>')
     }
     else
     {
-        ctx.body = request.get(url)
+        const x = request(query.url)
+        req.pipe(x)
+        x.pipe(res)
     }
+}).listen(1020, function()
+{
+    console.log(`proxy online : http://localhost:1020/`)
 })
-
-app.listen(1020)
